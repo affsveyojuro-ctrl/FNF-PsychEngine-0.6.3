@@ -1,0 +1,62 @@
+name: Mobile
+on:
+ push:
+    branches: main
+ workflow_dispatch:
+
+ workflow_call:
+    inputs:
+      buildFlags:
+        required: false
+        type: string
+
+jobs:
+  Mobile:
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest] ##macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+        with:
+          ref: 'main'
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: 4.3.6
+
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@main
+        id: setup-ndk
+        if: startsWith(matrix.os, 'ubuntu')
+        with:
+          ndk-version: r27c
+          add-to-path: false
+
+      - name: Install Libraries
+        run: |
+          haxelib install hmm --quiet
+          haxelib run hmm install --quiet
+
+      - name: Configure Android
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          haxelib run lime config ANDROID_SDK $ANDROID_HOME
+          haxelib run lime config ANDROID_NDK_ROOT ${{ steps.setup-ndk.outputs.ndk-path }}
+          haxelib run lime config JAVA_HOME $JAVA_HOME
+          haxelib run lime config ANDROID_SETUP true
+
+      - name: Compile (Android)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: haxelib run lime build android -final -ONLY_ARM64 -D ${{ inputs.buildFlags }}
+
+      - name: Upload Artifact (Android)
+        if: startsWith(matrix.os, 'ubuntu')
+        uses: actions/upload-artifact@main
+        with:
+          name: androidBuild
+          path: build/release/android/bin/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
