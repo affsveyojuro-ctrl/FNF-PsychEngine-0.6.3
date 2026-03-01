@@ -58,6 +58,11 @@ jobs:
       - name: Compile (Android)
         if: startsWith(matrix.os, 'ubuntu')
         run: haxelib run lime build android -final -ONLY_ARM64 -D ${{ inputs.buildFlags }}        
+
+              - name: Upload Artifact (Android)
+        if: startsWith(matrix.os, 'ubuntu')
+        uses: actions/upload-artifact@main
         with:
           name: buildAndroid
-          path: export/release/android/bin/app/build/outputs/apk/debug
+               path: export/release/android/bin/app/build/outputs/apk/debug
+          if-no-files-found: error
