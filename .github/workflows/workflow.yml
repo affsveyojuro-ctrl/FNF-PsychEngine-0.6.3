@@ -57,7 +57,7 @@ jobs:
 
       - name: Compile (Android)
         if: startsWith(matrix.os, 'ubuntu')
-        run: haxelib run lime build android -final -ONLY_ARM64 -D ${{ inputs.buildFlags }}        uses: actions/upload-artifact@main
+        run: haxelib run lime build android -final -ONLY_ARM64 -D ${{ inputs.buildFlags }}        
         with:
           name: buildAndroid
           path: export/release/android/bin/app/build/outputs/apk/debug
